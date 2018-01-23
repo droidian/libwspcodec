@@ -4,7 +4,7 @@ Release: 0
 Summary: WSP encoder and decoder library
 Group: Development/Libraries
 License: GPLv2
-URL: https://github.com/nemomobile/libwspcodec
+URL: https://git.merproject.org/mer-core/libwspcodec
 Source: %{name}-%{version}.tar.bz2
 BuildRequires: glib2-devel >= 2.0
 Requires(post): /sbin/ldconfig
