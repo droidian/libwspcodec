@@ -1,3 +1,9 @@
+libwspcodec (2.2.2) unstable; urgency=low
+
+  * Respect arch specific lib dir
+
+ -- Slava Monich <slava.monich@jolla.com>  Mon, 25 May 2020 19:50:22 +0300
+
 libwspcodec (2.2.0) unstable; urgency=low
 
   * Added wsp_header_iter_is_content_type()
