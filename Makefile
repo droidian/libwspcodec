@@ -18,9 +18,13 @@ all: debug release pkgconfig
 VERSION_MAJOR = 2
 VERSION_MINOR = 2
 VERSION_RELEASE = 1
-VERSION = $(VERSION_MAJOR).$(VERSION_MINOR)
 
-LIB_SHORTCUT = libwspcodec-$(VERSION).so
+VERSION = $(VERSION_MAJOR).$(VERSION_MINOR)
+PCVERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)
+
+NAME = wspcodec
+LIB_NAME = lib$(NAME)
+LIB_SHORTCUT = $(LIB_NAME)-$(VERSION).so
 LIB_SONAME = $(LIB_SHORTCUT)
 LIB = $(LIB_SONAME).$(VERSION_RELEASE)
 
@@ -48,31 +52,29 @@ LD = $(CC)
 WARNINGS = -Wall
 INCLUDES = -I$(SRC_DIR)
 BASE_FLAGS = -fPIC
-CFLAGS = $(BASE_FLAGS) $(DEFINES) $(WARNINGS) $(INCLUDES) -MMD -MP \
-  $(shell pkg-config --cflags $(PKGS))
-LDFLAGS = $(BASE_FLAGS) -shared -Wl,-soname,$(LIB_SONAME) \
+FULL_CFLAGS = $(BASE_FLAGS) $(CFLAGS) $(DEFINES) $(WARNINGS) $(INCLUDES) \
+  -MMD -MP $(shell pkg-config --cflags $(PKGS))
+FULL_LDFLAGS = $(BASE_FLAGS) $(LDFLAGS) -shared -Wl,-soname=$(LIB_SONAME) \
   $(shell pkg-config --libs $(PKGS))
 DEBUG_FLAGS = -g
 RELEASE_FLAGS =
 
-ifndef KEEP_SYMBOLS
-KEEP_SYMBOLS = 0
-endif
-
+KEEP_SYMBOLS ?= 0
 ifneq ($(KEEP_SYMBOLS),0)
 RELEASE_FLAGS += -g
 endif
 
-DEBUG_LDFLAGS = $(LDFLAGS) $(DEBUG_FLAGS)
-RELEASE_LDFLAGS = $(LDFLAGS) $(RELEASE_FLAGS)
-DEBUG_CFLAGS = $(CFLAGS) $(DEBUG_FLAGS) -DDEBUG
-RELEASE_CFLAGS = $(CFLAGS) $(RELEASE_FLAGS) -O2
+DEBUG_LDFLAGS = $(FULL_LDFLAGS) $(DEBUG_FLAGS)
+RELEASE_LDFLAGS = $(FULL_LDFLAGS) $(RELEASE_FLAGS)
+
+DEBUG_CFLAGS = $(FULL_CFLAGS) $(DEBUG_FLAGS) -DDEBUG
+RELEASE_CFLAGS = $(FULL_CFLAGS) $(RELEASE_FLAGS) -O2
 
 #
 # Files
 #
 
-PKGCONFIG = $(BUILD_DIR)/libwspcodec.pc
+PKGCONFIG = $(BUILD_DIR)/$(LIB_NAME).pc
 DEBUG_OBJS = $(SRC:%.c=$(DEBUG_BUILD_DIR)/%.o)
 RELEASE_OBJS = $(SRC:%.c=$(RELEASE_BUILD_DIR)/%.o)
 
@@ -87,6 +89,10 @@ ifneq ($(strip $(DEPS)),)
 endif
 endif
 
+$(DEBUG_OBJS): | $(DEBUG_BUILD_DIR)
+$(RELEASE_OBJS): | $(RELEASE_BUILD_DIR)
+$(PKGCONFIG): | $(BUILD_DIR)
+
 #
 # Rules
 #
@@ -98,14 +104,13 @@ debug: $(DEBUG_LIB)
 
 release: $(RELEASE_LIB)
 
-pkgconfig: $(PKGCONFIG)
-
 clean:
 	rm -f *~ $(SRC_DIR)/*~
 	rm -fr $(BUILD_DIR) RPMS installroot
-	rm -fr debian/tmp debian/libwspcodec debian/libwspcodec-dev
+	rm -fr debian/tmp debian/$(LIB_NAME) debian/$(LIB_NAME)-dev
 	rm -f documentation.list debian/files debian/*.substvars
 	rm -f debian/*.debhelper.log debian/*.debhelper
+	rm -f debian/*.install debian/*~
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -116,39 +121,47 @@ $(DEBUG_BUILD_DIR):
 $(RELEASE_BUILD_DIR):
 	mkdir -p $@
 
-$(DEBUG_LIB): $(DEBUG_BUILD_DIR) $(DEBUG_OBJS)
+$(DEBUG_LIB): $(DEBUG_OBJS)
 	$(LD) $(DEBUG_OBJS) $(DEBUG_LDFLAGS) -o $@
 
-$(RELEASE_LIB): $(RELEASE_BUILD_DIR) $(RELEASE_OBJS)
+$(RELEASE_LIB): $(RELEASE_OBJS)
 	$(LD) $(RELEASE_OBJS) $(RELEASE_LDFLAGS) -o $@
 ifeq ($(KEEP_SYMBOLS),0)
 	strip $@
 endif
 
 $(DEBUG_BUILD_DIR)/%.o : $(SRC_DIR)/%.c
-	$(CC) -c $(DEBUG_CFLAGS) -MF"$(@:%.o=%.d)" $< -o $@
+	$(CC) -c $(DEBUG_CFLAGS) -MT"$@" -MF"$(@:%.o=%.d)" $< -o $@
 
 $(RELEASE_BUILD_DIR)/%.o : $(SRC_DIR)/%.c
-	$(CC) -c $(RELEASE_CFLAGS) -MF"$(@:%.o=%.d)" $< -o $@
+	$(CC) -c $(RELEASE_CFLAGS) -MT"$@" -MF"$(@:%.o=%.d)" $< -o $@
 
-$(PKGCONFIG): libwspcodec.pc.in
-	sed -e 's/\[version\]/'$(VERSION)/g $< > $@
+#
+# LIBDIR usually gets substituted with arch specific dir
+# It's relative in deb build and can be whatever in rpm build.
+#
 
+LIBDIR ?= /usr/lib
+ABS_LIBDIR := $(shell echo /$(LIBDIR) | sed -r 's|/+|/|g')
+
+pkgconfig: $(PKGCONFIG)
+
+$(PKGCONFIG): $(LIB_NAME).pc.in Makefile
+	sed -e 's|@version@|$(PCVERSION)|g' -e 's|@libdir@|$(ABS_LIBDIR)|g' $< > $@
+
+debian/%.install: debian/%.install.in
+	sed 's|@LIBDIR@|$(LIBDIR)|g' $< > $@
 #
 # Install
 #
 
-INSTALL_PERM  = 644
-INSTALL_OWNER = $(shell id -u)
-INSTALL_GROUP = $(shell id -g)
-
 INSTALL = install
 INSTALL_DIRS = $(INSTALL) -d
-INSTALL_FILES = $(INSTALL) -m $(INSTALL_PERM)
+INSTALL_FILES = $(INSTALL) -m 644
 
-INSTALL_LIB_DIR = $(DESTDIR)/usr/lib
-INSTALL_INCLUDE_DIR = $(DESTDIR)/usr/include/libwspcodec/wspcodec
-INSTALL_PKGCONFIG_DIR = $(DESTDIR)/usr/lib/pkgconfig
+INSTALL_LIB_DIR = $(DESTDIR)$(ABS_LIBDIR)
+INSTALL_INCLUDE_DIR = $(DESTDIR)/usr/include/$(NAME)
+INSTALL_PKGCONFIG_DIR = $(DESTDIR)$(ABS_LIBDIR)/pkgconfig
 
 INSTALL_ALIAS = $(INSTALL_LIB_DIR)/$(LIB_SHORTCUT)
 

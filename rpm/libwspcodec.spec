@@ -4,7 +4,7 @@ Release: 0
 Summary: WSP encoder and decoder library
 Group: Development/Libraries
 License: GPLv2
-URL: https://git.merproject.org/mer-core/libwspcodec
+URL: https://git.sailfishos.org/mer-core/libwspcodec
 Source: %{name}-%{version}.tar.bz2
 BuildRequires: glib2-devel >= 2.0
 Requires(post): /sbin/ldconfig
@@ -25,11 +25,11 @@ This package contains the development library for %{name}.
 %setup -q
 
 %build
-make KEEP_SYMBOLS=1 release pkgconfig
+make LIBDIR=%{_libdir} KEEP_SYMBOLS=1 release pkgconfig
 
 %install
 rm -rf %{buildroot}
-make install-dev DESTDIR=%{buildroot}
+make LIBDIR=%{_libdir} DESTDIR=%{buildroot} install-dev
 
 %post -p /sbin/ldconfig
 
@@ -37,11 +37,9 @@ make install-dev DESTDIR=%{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%{_libdir}/%{name}*.so.*
+%{_libdir}/%{name}*.so*
 
 %files devel
 %defattr(-,root,root,-)
-%{_libdir}/%{name}-2.2.so
-%{_libdir}/pkgconfig/libwspcodec.pc
-%{_includedir}/libwspcodec/wspcodec/wsputil.h
-%{_includedir}/libwspcodec/wspcodec/wspcodec.h
+%{_libdir}/pkgconfig/*.pc
+%{_includedir}/wspcodec

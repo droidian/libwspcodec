@@ -1,12 +1,12 @@
 *~
 build
-debian/*.log
-debian/*substvars
+debian/files
 debian/libwspcodec
 debian/libwspcodec-dev
-debian/libwspcodec.postinst.debhelper
-debian/libwspcodec.postrm.debhelper
-debian/files
+debian/*.debhelper.log
+debian/*.debhelper
+debian/*.install
+debian/*.substvars
 debian/tmp
 documentation.list
 installroot

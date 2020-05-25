@@ -1,9 +1,10 @@
-libdir=/usr/lib
-includedir=/usr/include/libwspcodec
+name=wspcodec
+libdir=@libdir@
+includedir=/usr/include
 
 Name: libwspcodec
 Description: WSP encoder and decoder library
-Version: [version]
-Requires: glib-2.0
-Libs: -L${libdir} -lwspcodec-[version]
-Cflags: -I${includedir} -I${includedir}/wspcodec
+Version: @version@
+Requires.private: glib-2.0
+Libs: -L${libdir} -l${name}-2.2
+Cflags: -I${includedir} -I${includedir}/${name}
