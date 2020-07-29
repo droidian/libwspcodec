@@ -3,7 +3,8 @@
  *  Multimedia Messaging Service
  *
  *  Copyright (C) 2010-2011  Intel Corporation. All rights reserved.
- *  Copyright (C) 2013-2014  Jolla Ltd.
+ *  Copyright (C) 2013-2020  Jolla Ltd.
+ *  Copyright (C) 2020  Open Mobile Platform LLC.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 2 as
@@ -146,10 +147,10 @@ static const struct wsp_hex_str_entry extension_mimetypes[] = {
 	{ 0xFFFF, NULL },
 };
 
+/* https://www.iana.org/assignments/character-sets/character-sets.xhtml */
 static const struct wsp_hex_str_entry charset_assignments[] = {
 	{ 0x0000, "*" },
-	{ 0x07EA, "big5" },
-	{ 0x03E8, "iso-10646-ucs-2" },
+	{ 0x0003, "us-ascii" },
 	{ 0x0004, "iso-8859-1" },
 	{ 0x0005, "iso-8859-2" },
 	{ 0x0006, "iso-8859-3" },
@@ -159,10 +160,23 @@ static const struct wsp_hex_str_entry charset_assignments[] = {
 	{ 0x000A, "iso-8859-7" },
 	{ 0x000B, "iso-8859-8" },
 	{ 0x000C, "iso-8859-9" },
+	{ 0x000D, "iso-8859-10" },
+	{ 0x006D, "iso-8859-13" },
+	{ 0x006E, "iso-8859-14" },
+	{ 0x006F, "iso-8859-15" },
+	{ 0x0070, "iso-8859-16" },
 	{ 0x0011, "shift_JIS" },
-	{ 0x0003, "us-ascii" },
 	{ 0x006A, "utf-8" },
+	{ 0x03E8, "iso-10646-ucs-2" },
+	{ 0x03F5, "utf-16be" },
+	{ 0x03F6, "utf-16le" },
 	{ 0x03F7, "utf-16" },
+	{ 0x03F9, "utf-32" },
+	{ 0x03FA, "utf-32be" },
+	{ 0x03FB, "utf-32le" },
+	{ 0x07EA, "big5" },
+	{ 0x0824, "koi8-r" },
+	{ 0x0828, "koi8-u" },
 	{ 0xFFFF, NULL },
 };
 
@@ -389,13 +403,12 @@ gboolean wsp_get_well_known_content_type(const char *text,
 	return FALSE;
 }
 
-gboolean wsp_get_well_known_charset(const char *text, unsigned int *out_val)
+gboolean wsp_get_well_known_charset(const char *cs, unsigned int *out_val)
 {
 	unsigned int i;
 
-	for (i = 0; charset_assignments[i].type_str != NULL; i++) {
-		if (g_str_equal(charset_assignments[i].type_str,
-							text) == TRUE) {
+	for (i = 0; charset_assignments[i].type_str; i++) {
+		if (!g_ascii_strcasecmp(charset_assignments[i].type_str, cs)) {
 			*out_val = charset_assignments[i].type;
 			return TRUE;
 		}
