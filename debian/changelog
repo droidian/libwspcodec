@@ -1,3 +1,10 @@
+libwspcodec (2.2.3) unstable; urgency=low
+
+  * Added more charsets
+  * Compare charset names case-insensitively
+
+ -- Slava Monich <slava.monich@jolla.com>  Wed, 29 Jul 2020 14:41:44 +0300
+
 libwspcodec (2.2.2) unstable; urgency=low
 
   * Respect arch specific lib dir
