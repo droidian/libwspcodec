@@ -2,9 +2,8 @@ Name: libwspcodec
 Version: 2.2.4
 Release: 0
 Summary: WSP encoder and decoder library
-Group: Development/Libraries
 License: GPLv2
-URL: https://git.sailfishos.org/mer-core/libwspcodec
+URL: https://github.com/sailfishos/libwspcodec
 Source: %{name}-%{version}.tar.bz2
 BuildRequires: glib2-devel >= 2.0
 Requires(post): /sbin/ldconfig
@@ -37,6 +36,7 @@ make LIBDIR=%{_libdir} DESTDIR=%{buildroot} install-dev
 
 %files
 %defattr(-,root,root,-)
+%license LICENSE LICENSE.GPL2
 %{_libdir}/%{name}*.so*
 
 %files devel
