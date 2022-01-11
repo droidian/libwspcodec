@@ -1,3 +1,9 @@
+libwspcodec (2.2.5) unstable; urgency=low
+
+  * Install license file on RPM based systems
+
+ -- Slava Monich <slava.monich@jolla.com>  Tue, 11 Jan 2022 02:44:02 +0200
+
 libwspcodec (2.2.4) unstable; urgency=low
 
   * Make library executable on RPM based systems
