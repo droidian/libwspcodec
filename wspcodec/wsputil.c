@@ -3,7 +3,7 @@
  *  Multimedia Messaging Service
  *
  *  Copyright (C) 2010-2011  Intel Corporation. All rights reserved.
- *  Copyright (C) 2013-2020  Jolla Ltd.
+ *  Copyright (C) 2013-2022  Jolla Ltd.
  *  Copyright (C) 2020  Open Mobile Platform LLC.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -235,7 +235,25 @@ const char *wsp_decode_text(const unsigned char *pdu, unsigned int len,
 	if (*pdu == 127) {
 		pdu++;
 
-		if (*pdu < 128)
+		/*
+		 * According to WSP spec:
+		 *
+		 * Quote = <Octet 127>
+		 * End-of-string = <Octet 0>
+		 *
+		 * ...
+		 *
+		 * Text-string = [Quote] *TEXT End-of-string
+		 *
+		 * ; If the first character in the TEXT is in the
+		 *   range of 128-255, a Quote character must precede it.
+		 * ; Otherwise the Quote character must be omitted. The
+		 *   Quote is not part of the contents.
+		 *
+		 * However in practice an empty string sometimes gets encoded
+		 * as 0x7f 0x00. Let's not be too strict and allow that.
+		 */
+		if (*pdu < 128 && *pdu)
 			return NULL;
 
 		len -= 1;
@@ -366,8 +384,7 @@ gboolean wsp_decode_field(const unsigned char *pdu, unsigned int max,
 
 		value = WSP_VALUE_TYPE_LONG;
 	} else {
-		if (decode_text_common(pdu, end - pdu,
-					TRUE, FALSE, &len) == NULL)
+		if (wsp_decode_text(pdu, end - pdu, &len) == NULL)
 			return FALSE;
 
 		value = WSP_VALUE_TYPE_TEXT;
