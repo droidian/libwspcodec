@@ -1,3 +1,9 @@
+libwspcodec (2.2.6) unstable; urgency=low
+
+  * Allow empty quoted subject
+
+ -- Slava Monich <slava.monich@jolla.com>  Fri, 03 Jun 2022 04:43:14 +0300
+
 libwspcodec (2.2.5) unstable; urgency=low
 
   * Install license file on RPM based systems
