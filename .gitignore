@@ -13,3 +13,6 @@ installroot
 libwspcodec.ncb
 libwspcodec.opt
 RPMS
+
+# Added by Droidian
+!.circleci/
